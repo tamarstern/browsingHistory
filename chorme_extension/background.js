@@ -3,9 +3,15 @@
 
 chrome.runtime.onInstalled.addListener(function() {
 	
-  var sendPostToServer = function(siteUrl, now, referrer) {
+  var sendPostToServer = function(siteUrl, now, referrer, iframes) {
 		var request = new XMLHttpRequest();
-		var params = "url=" + siteUrl + "&time=" + now + "&referrer=" + referrer;
+		var params = "url=" + siteUrl + "&time=" + now 
+		if(referrer) {
+			params = params + "&referrer=" + referrer;
+		}
+		if(iframes) {
+			params = params + "&iframes=" + iframes;
+		}
 		var url = "http://localhost:3030/api/browsingHistorys";
 		request.open("POST", url, true);
 		request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
@@ -17,11 +23,11 @@ chrome.runtime.onInstalled.addListener(function() {
 	   var now = Date.now();
 	   var siteUrl = tab.url;
 	   var referrer = tab.referrer;
-	   //console.log('from background ' + siteUrl + ' on time ' + now);
+	   var iframes = tab.iframes;
 	   if(siteUrl == 'chrome://newtab/' || siteUrl == 'http://localhost:3000/' || siteUrl == 'about:blank') {
 			return;
 		}
-	   sendPostToServer(siteUrl, now, referrer);
+	   sendPostToServer(siteUrl, now, referrer, iframes);
   }
   
   var extractUrlAndSendRequest = function(tabs) {
@@ -39,22 +45,17 @@ chrome.runtime.onInstalled.addListener(function() {
       actions: [new chrome.declarativeContent.ShowPageAction()]
     }]);
   });
+  
   chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
 	  if(changeInfo.status === 'complete') {
 		chrome.tabs.executeScript(tabId, { code: "document.referrer;" }, function(result) {
-			//console.log('referrer is ' + result);
 			tab.referrer = result;
-			chrome.tabs.executeScript(tabId, { code: "document.querySelectorAll('iframe')].map(i => i.src).filter(src => src.startsWith('http'))"}, function(iframeRes) {
-				console.log('iframes are ' + iframeRes);
+			chrome.tabs.executeScript(tabId, { code: '[...document.querySelectorAll("iframe")].map(i => i.src).filter(src => src.startsWith("http"))'}, function(iframeRes) {
+				tab.iframes = iframeRes;
 				extractTabUrlAndSendRequest(tab);
 			});            
         });
 	  }
   });
 
-  chrome.tabs.onCreated.addListener(function(tab) {         
-		chrome.tabs.query({active:true, currentWindow: true}, function(tabs){
-			extractUrlAndSendRequest(tabs);
-		});
-  });
 });

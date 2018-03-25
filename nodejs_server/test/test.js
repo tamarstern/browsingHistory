@@ -82,7 +82,8 @@ describe('BrowsingHistorys', () => {
             let browsingHistory = {
                 url: 'www.google.com',
                 time: nowDate,
-                referrer: 'www.google.com'
+                referrer: 'www.google.com',
+                iframes: ['www.google.com', 'www.google.com']
             }
             chai.request(server)
                 .post('/api/browsingHistorys')
@@ -93,6 +94,10 @@ describe('BrowsingHistorys', () => {
                     res.body.should.be.a('object');
                     res.body.data.should.have.property('url').eql('www.google.com');
                     res.body.data.should.have.property('referrer').eql('www.google.com');
+                    res.body.data.should.have.property('iframes');
+                    res.body.data.iframes.length.should.be.eql(2);
+                    res.body.data.iframes[0].should.be.eql('www.google.com');
+                    res.body.data.iframes[1].should.be.eql('www.google.com');
                     res.body.data.should.have.property('time');
                     var time = res.body.data.time;
                     var timeMillisDate = new Date(time);
@@ -102,7 +107,7 @@ describe('BrowsingHistorys', () => {
                 });
         });
 
-        it('it should POST a browsingHistory with emoty referrer', (done) => {
+        it('it should POST a browsingHistory with empty referrer and empty iframes', (done) => {
             let nowDate = Date.now().toString();
             let browsingHistory = {
                 url: 'www.google.com',
@@ -116,6 +121,7 @@ describe('BrowsingHistorys', () => {
                     res.should.have.status(200);
                     res.body.should.be.a('object');
                     res.body.data.should.have.property('referrer').eql('EMPTY_REFERRER');
+                    res.body.data.should.not.have.property('iframes');                    
                     done();
                 });
         });

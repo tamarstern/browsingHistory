@@ -75,7 +75,8 @@ class BrowsingHistoryLst extends React.Component {
             <div>
               <span className="dateStyle">{history.time}</span>
               {history.url}
-              <h3 hidden={!history.isExpanded}>referrer : {history.referrer}</h3>
+              <h3 hidden={!history.isExpanded}>referrer : {history.referrer} </h3>
+              <h3 hidden={!history.isExpanded && history.iframes}> iframes : {history.iframes ? history.iframes : 'NO_IFRAMES'}</h3>
             </div>
           </li>
         )}

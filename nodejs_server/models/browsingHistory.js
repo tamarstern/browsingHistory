@@ -5,7 +5,8 @@ var mongoose = require('mongoose');
 var BrowserHistorySchema   = new mongoose.Schema({
   url: String,
   time: Date,
-  referrer: {type: String, default: 'EMPTY_REFERRER'}
+  referrer: {type: String, default: 'EMPTY_REFERRER'},
+  iframes:[String]
 });
 
 // Export the Mongoose model

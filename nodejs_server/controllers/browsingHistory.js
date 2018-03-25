@@ -14,7 +14,7 @@ exports.postBrowsingHistorys = function(req, res) {
   var millis = parseInt(req.body.time);
   browsingHistory.time = new Date(millis);
   browsingHistory.iframes = req.body.iframes;
-
+  browsingHistory.userId = req.body.userId;
   // Save the browsingHistory and check for errors
   browsingHistory.save(function(err) {
     if (err) {

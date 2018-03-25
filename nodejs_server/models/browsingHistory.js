@@ -6,7 +6,8 @@ var BrowserHistorySchema   = new mongoose.Schema({
   url: String,
   time: Date,
   referrer: {type: String, default: 'EMPTY_REFERRER'},
-  iframes:[String]
+  iframes:[String],
+  userId: String
 });
 
 // Export the Mongoose model

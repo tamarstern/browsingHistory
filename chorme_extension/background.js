@@ -1,9 +1,34 @@
-
 'use strict';
 
 chrome.runtime.onInstalled.addListener(function() {
+		
+	var getRandomToken = function() {
+		var randomPool = new Uint8Array(32);
+		crypto.getRandomValues(randomPool);
+		var hex = '';
+		for (var i = 0; i < randomPool.length; ++i) {
+			hex += randomPool[i].toString(16);
+		}
+		return hex;
+	}
+
+	var getUserId = function() {
+	  return new Promise(function (resolve, reject) {
+		chrome.storage.local.get('userid', function(items) {
+			var userid = items.userid;
+			if (userid) {
+				resolve(userid);
+			} else {
+				userid = getRandomToken();
+				chrome.storage.local.set({userid: userid}, function() {
+					resolve(userid);
+				});
+			}
+		});
+	  });
+	}
 	
-  var sendPostToServer = function(siteUrl, now, referrer, iframes) {
+  var sendPostToServer = function(siteUrl, now, referrer, iframes, userId) {
 		var request = new XMLHttpRequest();
 		var params = "url=" + siteUrl + "&time=" + now 
 		if(referrer) {
@@ -12,6 +37,9 @@ chrome.runtime.onInstalled.addListener(function() {
 		if(iframes) {
 			params = params + "&iframes=" + iframes;
 		}
+		if(userId) {
+			params = params + "&userId=" + userId;
+		}
 		var url = "http://localhost:3030/api/browsingHistorys";
 		request.open("POST", url, true);
 		request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
@@ -19,7 +47,7 @@ chrome.runtime.onInstalled.addListener(function() {
 		request.send(params);
   }
   
-  var extractTabUrlAndSendRequest = function(tab) {
+  var extractTabUrlAndSendRequest = function(tab, userId) {
 	   var now = Date.now();
 	   var siteUrl = tab.url;
 	   var referrer = tab.referrer;
@@ -27,7 +55,7 @@ chrome.runtime.onInstalled.addListener(function() {
 	   if(siteUrl == 'chrome://newtab/' || siteUrl == 'http://localhost:3000/' || siteUrl == 'about:blank') {
 			return;
 		}
-	   sendPostToServer(siteUrl, now, referrer, iframes);
+	   sendPostToServer(siteUrl, now, referrer, iframes, userId);
   }
   
   var extractUrlAndSendRequest = function(tabs) {
@@ -52,7 +80,9 @@ chrome.runtime.onInstalled.addListener(function() {
 			tab.referrer = result;
 			chrome.tabs.executeScript(tabId, { code: '[...document.querySelectorAll("iframe")].map(i => i.src).filter(src => src.startsWith("http"))'}, function(iframeRes) {
 				tab.iframes = iframeRes;
-				extractTabUrlAndSendRequest(tab);
+				getUserId().then(function (userId) {
+					extractTabUrlAndSendRequest(tab, userId);
+				});
 			});            
         });
 	  }

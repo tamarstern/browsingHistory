@@ -83,7 +83,8 @@ describe('BrowsingHistorys', () => {
                 url: 'www.google.com',
                 time: nowDate,
                 referrer: 'www.google.com',
-                iframes: ['www.google.com', 'www.google.com']
+                iframes: ['www.google.com', 'www.google.com'],
+                userId: '123'
             }
             chai.request(server)
                 .post('/api/browsingHistorys')
@@ -94,6 +95,7 @@ describe('BrowsingHistorys', () => {
                     res.body.should.be.a('object');
                     res.body.data.should.have.property('url').eql('www.google.com');
                     res.body.data.should.have.property('referrer').eql('www.google.com');
+                    res.body.data.should.have.property('userId').eql('123');
                     res.body.data.should.have.property('iframes');
                     res.body.data.iframes.length.should.be.eql(2);
                     res.body.data.iframes[0].should.be.eql('www.google.com');
@@ -134,7 +136,9 @@ describe('BrowsingHistorys', () => {
             let browsingHistory = new BrowsingHistory({
                 url: 'www.google.com',
                 time: nowDate, 
-                referrer: 'www.google.com'
+                referrer: 'www.google.com',
+                iframes: ['www.google.com', 'www.google.com'],
+                userId: '123'                
             });
             browsingHistory.save((err, browsingHistory) => {
                 chai.request(server)
@@ -145,6 +149,11 @@ describe('BrowsingHistorys', () => {
                         res.body.should.be.a('object');
                         res.body.should.have.property('url').eql('www.google.com');
                         res.body.should.have.property('referrer').eql('www.google.com');
+                        res.body.should.have.property('userId').eql('123');
+                        res.body.should.have.property('iframes');
+                        res.body.iframes.length.should.be.eql(2);
+                        res.body.iframes[0].should.be.eql('www.google.com');
+                        res.body.iframes[1].should.be.eql('www.google.com');
                         res.body.should.have.property('time');
                         var time = res.body.time;
                         var timeMillisDate = new Date(time);
